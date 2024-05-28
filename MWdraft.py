@@ -36,7 +36,7 @@ from sklearn.tree import export_graphviz
 # from IPython.display import Image
 import graphviz
 
-subjects = [102, 104, 105, 107, 109, 110, 111, 115, 116, 117, 118, 120, 126, 127, 130, 131, 132, 133, 135, 138, 141, 143, 144]
+subjects = [102, 104, 105, 107, 110, 111, 115, 116, 117, 118, 120, 126, 127, 130, 131, 132, 133, 135, 138, 141, 143, 144]
 col = ['1','2','3','Label', 'Frontal P3 mean', 'Frontal P3 STD', 'Posterior P3 mean', 'Posterior P3 STD', 'Frontal alpha mean', 
            'Posterior alpha mean', 'Alpha variability', 'Reaction time Mean', 'Reaction time variability', 'Accuracy', 'Frontal P3 log energy entropy', 
            'Frontal P3 Shannon entropy', 'Frontal P3 SURE entropy', 'Frontal P3 Skewness', 'Frontal P3 Kurtosis', 'Frontal alpha log energy entropy',
@@ -71,12 +71,14 @@ for a in subjects:
     else:
         totalDF = pd.concat([totalDF, subDF_TR])
         totalDF = pd.concat([totalDF, subDF_TUR])
-print(totalDF)
 
 #Show Data with NaN values:
 # print(totalDF[totalDF.isnull().any(axis=1)])
-# NOTE: Subject 109 has NaN values in the Reaction time Mean and Reaction time variability columns. Will fill with 0-values, may need to exclude
-totalDF.fillna(0, inplace=True)
+# NOTE: Subject 109 has NaN values in the Reaction time Mean and Reaction time variability columns. Excluded from analysis.
+# totalDF.fillna(0, inplace=True)
+
+totalDF.reset_index(drop=True, inplace=True)
+print(totalDF)
 
 target_Data = totalDF.iloc[:,3:]
 # print(targetData)
@@ -117,7 +119,7 @@ print("After oversampling: ", y_smote.value_counts())
 # *Learned many of the techniques below from __[DataCamp](https://www.datacamp.com/tutorial/understanding-logistic-regression-python)__*.
 
 # %%
-logreg = LogisticRegression(random_state = 32, max_iter=500, solver='lbfgs')
+logreg = LogisticRegression(random_state = 32, max_iter=1100, solver='lbfgs')
 logreg.fit(X_train, y_train)
 log_Y_Pred = logreg.predict(X_test)
 
@@ -179,12 +181,12 @@ specificity_score = cnf_matrix[1,1]/(cnf_matrix[1,0]+cnf_matrix[1,1])
 mcc = metrics.matthews_corrcoef(y_test, RaFo_Y_Pred)
 accuracy = metrics.accuracy_score(y_test, RaFo_Y_Pred)
 balanced_accuracy = metrics.balanced_accuracy_score(y_test, RaFo_Y_Pred)
-# auc 
+auc = metrics.roc_auc_score(y_test, rf.predict_proba(X_test)[:,1])
 print(cnf_matrix)
 print("Sensitivity: ", sensitivity_score)
 print("Specificity: ", specificity_score)
 print("Matthews Correlation Coefficient: ", mcc)
-# print("AUC: ", auc)
+print("AUC: ", auc)
 print("Accuracy: ", accuracy)
 print("Balanced Accuracy: ", balanced_accuracy)
 print(metrics.classification_report(y_test, RaFo_Y_Pred, target_names=target_names))
@@ -233,12 +235,12 @@ specificity_score = cnf_matrix[1,1]/(cnf_matrix[1,0]+cnf_matrix[1,1])
 mcc = metrics.matthews_corrcoef(y_test, KNN_y_predict)
 accuracy = metrics.accuracy_score(y_test, KNN_y_predict)
 balanced_accuracy = metrics.balanced_accuracy_score(y_test, KNN_y_predict)
-# auc
+auc = metrics.roc_auc_score(y_test, model.predict_proba(X_test)[:,1])
 print(cnf_matrix)
 print("Sensitivity: ", sensitivity_score)
 print("Specificity: ", specificity_score)
 print("Matthews Correlation Coefficient: ", mcc)
-# print("AUC: ", auc)
+print("AUC: ", auc)
 print("Accuracy: ", accuracy)
 print("Balanced Accuracy: ", balanced_accuracy)
 print(metrics.classification_report(y_test, KNN_y_predict, target_names=target_names))
